@@ -57,3 +57,90 @@ Este archivo contiene información detallada sobre las operaciones de la cadena 
 | **Product Status** | Estado del stock (0: disponible, 1: no disponible). |
 | **shipping date (DateOrders)** | Fecha y hora exacta del envío. |
 | **Shipping Mode** | Modo de envío (Standard Class, First Class, Second Class, Same Day). |
+
+
+Documentación del Análisis Exploratorio de Datos (EDA)
+Proyecto: Análisis de Logística y Órdenes de Pedidos
+
+Volumen del Dataset: 180,519 filas × 53 columnas
+
+Fecha: 25 de mayo de 2026
+
+Estado: Fase de Limpieza y Preparación de Datos
+
+1. Resumen Ejecutivo
+El objetivo de este análisis exploratorio es evaluar la calidad de las 53 columnas del conjunto de datos, identificar redundancias, corregir anomalías estructurales y reducir la dimensionalidad del dataset eliminando variables irrelevantes o altamente correlacionadas. Esto optimizará el rendimiento de los modelos predictivos o analíticos que se construyan en las fases posteriores.
+
+2. Hallazgos Críticos y Diagnóstico por Columnas
+A. Datos Sensibles / Sin Varianza (Eliminación Inmediata)
+Product Status: Variable constante. Todas las categorías registran el valor 0. Aunque teóricamente debería ser binaria (0: Disponible, 1: No disponible), al no tener variabilidad no aporta información al modelo.
+
+Customer Email & Contraseña: Columnas anonimizadas o enmascaradas con el valor genérico "xxx". Al no contener datos reales ni aportar valor analítico, se descartan por completo.
+
+Product Description: Columna vacía o carente de información relevante.
+
+B. Redundancias y Solapamiento Geográfico
+Order Zipcode: Presenta un 80% de valores nulos. La información geográfica se puede recuperar y mapear con mayor precisión a través de otras variables de ubicación.
+
+Market / Order State / Order Region: Existe una triple redundancia de escala geográfica. Order State es confuso al mezclar estados y países. Se determina que Order Region (23 regiones) aporta el mejor balance de granularidad, permitiendo la eliminación de Market y Order State.
+
+Customer City vs Customer Status: Ambas columnas contienen la misma información (nombre de la ciudad vs. su abreviatura/código). Se unificará el criterio utilizando una sola de ellas.
+
+C. Inconsistencias de Negocio y Calidad
+Customer Country: Presenta únicamente 2 países (EE. UU. y Puerto Rico). Se decide conservar temporalmente para segmentaciones y filtros futuros.
+
+Customer State: Registra 46 de los 50 estados de EE. UU. Sin embargo, se detectó una anomalía de entrada de datos donde los códigos postales 95758 y 91738 se guardaron erróneamente como estados. Ambos corresponden a California (CA) y requieren imputación.
+
+Product Image: Contiene enlaces URL a las imágenes de los productos. No se observa una usabilidad analítica clara a futuro, por lo que queda bajo observación para su posible descarte.
+
+3. Plan de Acción: Limpieza y Transformación (Pipeline de Datos)
+Basado en el diagnóstico, se ejecutarán las siguientes acciones de ingeniería de características (Feature Engineering) antes de proceder al modelado:
+
+📑 Cuadro de Eliminación de Columnas (Drop)
+Se eliminarán un total de 9 columnas para reducir el ruido y el coste computacional:
+
+Product Status
+
+Customer Email
+
+Contraseña
+
+Order Zipcode
+
+Product Description
+
+Order State
+
+Market
+
+Order Region (Eliminar duplicadas/versiones redundantes)
+
+🛠️ Modificaciones y Casteo de Tipos de Datos
+Corrección de Errores de Registro (Customer State):
+
+Reemplazar los valores string 95758 y 91738 por la abreviatura de estado CA.
+
+Casteo de Tipos (Data Type Casting):
+
+Customer Zipcode: Convertir de tipo numérico a String/Texto. Los códigos postales no deben tratarse como números ya que no se realizan operaciones aritméticas con ellos y se pueden perder los ceros a la izquierda.
+
+Order Item Discount: Convertir estrictamente a tipo Float (decimal) para garantizar precisión en los cálculos financieros.
+
+Estandarización Numérica (Redondeo):
+
+Aplicar una función global (round_columns.py) a todas las variables cuantitativas con decimales para fijar su precisión a 2 decimales.
+
+Tratamiento de Fechas y Tiempos (order date (DateOrders)):
+
+Realizar una operación de Split (separación) para dividir la columna en dos variables independientes: Order_Date y Order_Time.
+
+Convertir la fecha (actualmente en formato americano MM/DD/AAAA) al tipo estándar datetime64 para facilitar análisis de series temporales por meses (Enero - Diciembre).
+
+Validación de Identificadores (Claves Foráneas):
+
+Mantener las columnas Product Card Id y Product Category Id intactas. Se identifican como claves foráneas (FK) relacionales que conectan las entidades de Clientes, Pedidos y Productos en el modelo de datos.
+
+4. Conclusiones Provisionales del EDA
+El dataset cuenta con un volumen de registros robusto (más de 180k filas), lo cual es ideal para modelos de Machine Learning robustos. Sin embargo, sufre de una alta dimensionalidad artificial provocada por datos planos ("xxx", 0) y una severa redundancia en la información geográfica de los clientes y las entregas.
+
+Una vez aplicado este plan de limpieza, el dataset pasará de 53 columnas a un conjunto mucho más limpio, magro y optimizado para la fase de modelado predictivo o creación de dashboards.
