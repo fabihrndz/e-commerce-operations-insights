@@ -26,7 +26,7 @@ Volumen del Dataset: 469,977 filas × 8 columnas
 
 Fecha: 25 de mayo de 2026
 
-Estado: Fase de Limpieza, Deduplicación y Formateo
+Estado: Fase de Limpieza, De duplicación y Formateo
 
 1. Resumen Ejecutivo
 El objetivo de este análisis exploratorio es limpiar y estructurar un conjunto masivo de registros de acceso (logs) de una tienda virtual. El dataset captura el comportamiento de los usuarios durante un periodo crítico de ventas (campañas navideñas e invernales) a lo largo de varios años. El análisis se centra en eliminar redundancias temporales, corregir la dimensionalidad y preparar los datos para analizar patrones de comportamiento y embudos de conversión.
