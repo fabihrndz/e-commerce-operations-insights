@@ -15,9 +15,6 @@ Este archivo registra la actividad de navegación de los usuarios en la platafor
 | **ip** | Dirección IP del usuario (enmascarada/tokenizada). |
 | **url** | Ruta completa de la URL visitada en la tienda. |
 
-¡Perfecto! Aquí tienes la documentación formal para este segundo dataset. Al tratarse de un análisis de tráfico web (logs de accesos a una tienda online), el enfoque cambia hacia el comportamiento del usuario y la estacionalidad de las campañas.
-
-Puedes copiar y pegar esta estructura directamente en tu sistema de archivos:
 
 Documentación del Análisis Exploratorio de Datos (EDA)
 Proyecto: Análisis de Tráfico Web y Campañas Estacionales (E-commerce)
