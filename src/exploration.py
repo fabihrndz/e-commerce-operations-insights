@@ -1,17 +1,20 @@
+try:
+    from IPython.display import display
+except ImportError:
+    display = print
+
+
 def info_df(dataframe, sample_n=5):
     """
     Genera un informe técnico del DataFrame: separa estadísticas por tipo de dato (str vs num),
-    muestra dimensiones y permite buscar términos específicos en columnas y filas.
+    muestra dimensiones y describe el contenido.
 
     Parámetros:
     -----------
     dataframe : pandas.DataFrame
         El conjunto de datos a analizar.
-    search : str, opcional (default=None)
-        Término de búsqueda para localizar columnas por nombre o filas por contenido 
-        específico. Ignora mayúsculas/minúsculas.
     sample_n : int, opcional (default=5)
-        Número de filas a mostrar en las previsualizaciones y muestras aleatorias.
+        Número de filas a mostrar en la previsualizaciones y muestras aleatorias.
 
     """
 
