@@ -1,74 +1,89 @@
-# Propuesta de Normalización de Base de Datos - DataCo Supply Chain
+# Propuesta de Normalización de Base de Datos (Refinada V2) - DataCo Supply Chain
 
-Para transformar el archivo plano `dataco_supply_chain.csv` en un sistema de base de datos relacional profesional, se recomienda una arquitectura normalizada (3NF) que elimine la redundancia y garantice la integridad de los datos.
+Esta propuesta ha sido refinada para capturar la complejidad real del dataset identificada en el EDA, separando las entidades lógicas (Departamentos) de las ubicaciones físicas (Lat/Long) para evitar la pérdida de datos.
 
-A continuación, se detalla la división en tablas sugerida:
-
-## 1. Tabla: `customers` (Clientes)
-Almacena la información demográfica y de contacto de los clientes.
-*   **customer_id** (PK): Identificador único del cliente.
-*   **first_name**: Nombre del cliente.
-*   **last_name**: Apellido del cliente.
-*   **segment**: Segmento del cliente (Consumer, Corporate, Home Office).
-*   **street**: Dirección del cliente.
-*   **city**: Ciudad del cliente.
-*   **state**: Estado/Provincia.
-*   **country**: País.
-*   **zipcode**: Código postal.
+## 1. Tabla: `locations` (Puntos de Venta / Ubicaciones)
+Almacena las coordenadas geográficas únicas presentes en el dataset.
+*   **location_id** (PK): Identificador autoincremental para cada par único de coordenadas.
+*   **latitude**: Latitud de la ubicación.
+*   **longitude**: Longitud de la ubicación.
 
 ## 2. Tabla: `departments` (Departamentos)
-Organización de alto nivel de los productos.
-*   **department_id** (PK): Identificador del departamento.
+Entidades organizacionales de la empresa.
+*   **department_id** (PK): Identificador del departamento (1-11).
 *   **department_name**: Nombre del departamento (p. ej., Fitness, Fan Shop).
 
 ## 3. Tabla: `categories` (Categorías)
-Subdivisión de los departamentos.
 *   **category_id** (PK): Identificador de la categoría.
 *   **category_name**: Nombre de la categoría.
-*   **department_id** (FK): Referencia a la tabla `departments`.
 
 ## 4. Tabla: `products` (Productos)
-Catálogo de productos disponibles.
-*   **product_id** (PK): Identificador único del producto (`product_card_id`).
+*   **product_card_id** (PK): Identificador único del producto.
 *   **product_name**: Nombre del producto.
-*   **category_id** (FK): Referencia a la tabla `categories`.
-*   **price**: Precio unitario estándar.
+*   **category_id** (FK): Referencia a `categories`.
+*   **product_price**: Precio de lista.
 
-## 5. Tabla: `orders` (Órdenes/Cabecera de Pedido)
-Contiene la información general de la transacción.
+## 5. Tabla: `customers` (Clientes)
+Vincula a los compradores con su información demográfica y su ubicación fija.
+*   **customer_id** (PK): Identificador único del cliente.
+*   **location_id** (FK): Referencia a la tabla `locations`.
+*   **customer_fname**: Nombre.
+*   **customer_lname**: Apellido.
+*   **customer_segment**: Segmento.
+*   **customer_street**: Dirección.
+*   **customer_city**: Ciudad.
+*   **customer_state**: Estado.
+*   **customer_country**: País.
+*   **customer_zipcode**: Código postal.
+
+## 6. Tabla: `orders` (Órdenes / Logística)
+Gestiona la transacción y el flujo de envío hacia el destino.
 *   **order_id** (PK): Identificador único del pedido.
-*   **customer_id** (FK): Referencia al cliente que realizó el pedido.
-*   **order_date**: Fecha del pedido.
-*   **order_time**: Hora del pedido.
-*   **order_status**: Estado actual (COMPLETE, PENDING, etc.).
-*   **type**: Tipo de transacción (DEBIT, CASH, etc.).
-*   **shipping_date**: Fecha real de envío.
-*   **shipping_mode**: Modo de envío (Standard, First Class, etc.).
-*   **order_region**: Región geográfica de entrega.
-*   **order_city**: Ciudad de entrega.
-*   **order_country**: País de entrega.
-*   **days_for_shipping_real**: Días reales de envío.
+*   **customer_id** (FK): Referencia a `customers`.
+*   **department_id** (FK): Referencia a `departments`.
+*   **type**: Método de pago.
+*   **order_date**: Fecha.
+*   **order_time**: Hora.
+*   **order_status**: Estado administrativo.
+*   **order_city**: Ciudad de destino.
+*   **order_country**: País de destino.
+*   **order_region**: Región geográfica.
+*   **shipping_mode**: Modo de envío.
+*   **delivery_date**: Fecha de entrega.
+*   **days_for_shipping_real**: Días reales.
 *   **days_for_shipment_scheduled**: Días programados.
-*   **delivery_status**: Estado de la entrega.
-*   **late_delivery_risk**: Indicador de riesgo de retraso.
+*   **delivery_status**: Estado logístico.
+*   **late_delivery_risk**: Riesgo de retraso.
 
-## 6. Tabla: `order_items` (Detalle de Pedido)
-Relación entre productos y órdenes, con métricas financieras específicas de la línea.
-*   **order_item_id** (PK): Identificador único del ítem.
-*   **order_id** (FK): Referencia a la orden.
-*   **product_id** (FK): Referencia al producto.
-*   **quantity**: Cantidad comprada.
-*   **unit_price**: Precio al momento de la compra (`order_item_product_price`).
-*   **discount**: Monto del descuento aplicado.
-*   **discount_rate**: Porcentaje de descuento.
-*   **total_item_value**: Valor total de la línea (`order_item_total`).
-*   **profit_ratio**: Ratio de beneficio del ítem.
-*   **benefit_per_order**: Beneficio atribuido a este ítem.
+## 7. Tabla: `order_items` (Métricas de Venta)
+Métricas por cada producto vendido en una orden.
+*   **order_item_id** (PK): Identificador de la línea.
+*   **order_id** (FK): Referencia a `orders`.
+*   **product_id** (FK): Referencia a `products`.
+*   **order_item_quantity**: Cantidad.
+*   **order_item_product_price**: Precio en transacción.
+*   **order_item_discount**: Descuento.
+*   **order_item_discount_rate**: % Descuento.
+*   **sales**: Venta bruta.
+*   **order_item_total**: Venta neta (Mapeado de `sales_per_customer`).
+*   **order_item_profit_ratio**: Ratio de beneficio.
+*   **benefit_per_order**: Beneficio neto (Mapeado de `order_profit_per_order`).
 
 ---
 
-## Ventajas de este Modelo:
-1.  **Reducción de Redundancia**: El nombre del producto o la categoría no se repite en cada fila de venta, ahorrando espacio.
-2.  **Integridad Referencial**: Asegura que no existan pedidos de clientes que no están registrados o productos en categorías inexistentes.
-3.  **Flexibilidad**: Facilita actualizaciones masivas (por ejemplo, cambiar el nombre de una categoría en un solo lugar).
-4.  **Escalabilidad**: Permite agregar fácilmente nuevas entidades como `stores` (tiendas) o `suppliers` (proveedores) sin afectar la estructura actual.
+## Mapeo de Integridad (Columnas CSV vs Tablas)
+
+| Columna Original CSV | Tabla Destino | Justificación |
+| :--- | :--- | :--- |
+| `latitude`, `longitude` | `locations` | Representan la ubicación física. |
+| `department_id`, `department_name` | `departments` | Entidad organizacional. |
+| `customer_id`, `customer_fname`, ... | `customers` | Datos del comprador. |
+| `order_id`, `order_status`, `order_city`, ... | `orders` | Datos de la cabecera del pedido. |
+| `order_item_id`, `sales`, `order_item_total`, ... | `order_items` | Métricas de la transacción. |
+| `product_card_id`, `product_name`, ... | `products` | Catálogo de productos. |
+| `category_id`, `category_name` | `categories` | Jerarquía de productos. |
+
+## Notas Técnicas sobre la Normalización:
+1.  **Resolución de la Ambigüedad Geo**: El EDA mostró que hay ~11k ubicaciones pero solo 11 departamentos. Al crear la tabla `locations`, evitamos el error de usar `department_id` como PK, lo cual habría causado una pérdida masiva de datos geográficos.
+2.  **Relación Cliente-Ubicación**: Se detectó que cada `customer_id` tiene una única lat/long asociada. Por ello, la `location_id` se asocia directamente al cliente en esta fase.
+3.  **Mantenimiento de Métricas**: Se han incluido todas las columnas de métricas del CSV para asegurar que los dashboards posteriores tengan acceso a la misma información que el archivo original.
